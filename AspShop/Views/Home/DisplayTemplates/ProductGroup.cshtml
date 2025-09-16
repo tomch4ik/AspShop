@@ -1,0 +1,14 @@
+﻿@model AspShop.Data.Entities.ProductGroup
+
+<div class="col">
+    <a class="h-100 nav-link" asp-action="Category" asp-route-id="@Model.Slug">
+        <div class="card h-100">
+            <img src="/Storage/Item/@(Model.ImageUrl)" class="card-img-top" alt="...">
+            <div class="card-body">
+                <h5 class="card-title">@Model.Name</h5>
+                <p class="card-text">@Model.Description</p>
+            </div>
+            <div class="card-footer bg-transparent">Товарів: @Model.Products.Count()</div>
+        </div>
+    </a>
+</div>

@@ -35,11 +35,19 @@
                         .First(c => c.Type == ClaimTypes.Name)
                         .Value;
 
+                        bool isAdmin = Context.User.Claims
+                        .FirstOrDefault(c => c.Type == ClaimTypes.Role)
+                        ?.Value == "Admin";
+
                         String? email = Context.User.Claims
                         .FirstOrDefault(c => c.Type == ClaimTypes.Email)?
                         .Value;
 
                         <div>
+                            @if (isAdmin)
+                            {
+                                <a asp-action="Admin"><i class="bi bi-speedometer2"></i></a> 
+                            }
                             <b title="@name">@(name.ToUpper()[0])</b>
 
                             @if (!string.IsNullOrEmpty(email))
@@ -76,7 +84,7 @@
 
     <footer class="border-top footer text-muted">
         <div class="container">
-            &copy; 2025 - ASP_32 - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+            &copy; 2025 - AspShop - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
         </div>
     </footer>
 

@@ -18,14 +18,14 @@ namespace AspShop.Middleware.Auth
         {
             if (context.Request.Query.ContainsKey("logout"))
             {
-                context.Session.Remove("UserController::Authenticate");
+                //context.Session.Remove("UserController::Authenticate");
+                authService.RemoveAuth();
                 context.Response.Redirect(context.Request.Path);
                 return;
             }
-            if (context.Session.Keys.Contains("UserController::Authenticate"))
+            
             {
-                if (JsonSerializer.Deserialize<UserAccess>(
-                        context.Session.GetString("UserController::Authenticate")!)
+                if (authService.GetAuth<UserAccess>()
                     is UserAccess userAccess)
                 {
                     context.User = new ClaimsPrincipal(
@@ -33,22 +33,18 @@ namespace AspShop.Middleware.Auth
                             [
                                 new Claim(ClaimTypes.Sid, userAccess.UserId.ToString()),
                                 new Claim(ClaimTypes.Name, userAccess.User.Name),
+                                new Claim(ClaimTypes.Role, userAccess.RoleId),
                                 new Claim(ClaimTypes.Email, userAccess.User.Email)
                             ],
                             nameof(SessionAuthMiddleware)
                         )
                     );
                 }
-                else
-                {
-                    context.Session.Remove("UserController::Authenticate");
-                }
             }
             await _next(context);
         }
 
     }
-
 
     public static class SessionAuthMiddlewareExtensions
     {

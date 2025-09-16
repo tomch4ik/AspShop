@@ -1,0 +1,22 @@
+﻿@model AspShop.Models.Home.HomeCategoryViewModel
+@{
+    ViewData["Title"] = "Category Page";
+}
+
+@if(Model.ProductGroup == null)
+{
+    <div class="alert alert-danger" role="alert">  
+        A simple danger alert—check it out!
+    </div>
+}
+else
+{
+    <div class="text-center">
+        <h1 class="display-4">Розділ @Model.ProductGroup.Name</h1>
+    </div>
+    @foreach (var product in Model.ProductGroup.Products)
+    {
+        <p>@product.Name</p>
+    }
+}
+

@@ -3,7 +3,7 @@
     public interface IAuthService
     {
         void SetAuth(object payload);
-        object? GetAuth();
+        T? GetAuth<T>() where T: notnull;
         void RemoveAuth();
     }
 }

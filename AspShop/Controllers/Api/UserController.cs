@@ -1,4 +1,5 @@
 ﻿using AspShop.Data;
+using AspShop.Services.Auth;
 using AspShop.Services.Kdf;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -10,10 +11,11 @@ namespace AspShop.Controllers.Api
 {
     [Route("api/user")]
     [ApiController]
-    public class UserController(DataContext dataContext, IKdfService kdfService) : ControllerBase
+    public class UserController(DataContext dataContext, IKdfService kdfService, IAuthService authService) : ControllerBase
     {
         private readonly DataContext _dataContext = dataContext;
         private readonly IKdfService _kdfService = kdfService;
+        private readonly IAuthService _authService = authService;
 
         [HttpGet]
         public object Authenticate()
@@ -88,10 +90,11 @@ namespace AspShop.Controllers.Api
                 return new { Status = "Credentials rejected." };
             }
             // зберігаємо у сесії факт успішної автентифікації
-            HttpContext.Session.SetString(
-                "UserController::Authenticate",
-                JsonSerializer.Serialize(userAccess)
-            );
+            //HttpContext.Session.SetString(
+            //    "UserController::Authenticate",
+            //    JsonSerializer.Serialize(userAccess)
+            //);
+            _authService.SetAuth(userAccess);
             return userAccess;
         }
 

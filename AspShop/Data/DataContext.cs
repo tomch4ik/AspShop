@@ -8,6 +8,8 @@ namespace AspShop.Data
         public DbSet<User> Users { get; set; }
         public DbSet<UserRole> UserRoles { get; set; }
         public DbSet<UserAccess> UserAccesses { get; set; }
+        public DbSet<ProductGroup> ProductGroups { get; set; }
+        public DbSet<Product> Products { get; set; }
         public DataContext(DbContextOptions<DataContext> options) : base(options)
         {}
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -65,6 +67,18 @@ namespace AspShop.Data
                 .HasIndex(ua => ua.Login)
                 .IsUnique();
 
+            modelBuilder.Entity<Product>()
+                .HasOne(p => p.Group)
+                .WithMany(pg => pg.Products)
+                .HasForeignKey(p => p.GroupId);
+
+            modelBuilder.Entity<Product>()
+                .HasIndex(p => p.Slug)
+                .IsUnique();
+
+            modelBuilder.Entity<ProductGroup>()
+                .HasIndex(p => p.Slug)
+                .IsUnique();
         }
     }
 }

@@ -39,4 +39,67 @@ document.addEventListener('submit', e => {
             })
             .catch(console.error);
     }
+    if (form.id == 'admin-group-form') {
+        e.preventDefault();
+        fetch("/api/group", {
+            method: 'POST',
+            body: new FormData(form),
+        }).then(r => r.json()).then(j => {
+            alert(j.status);
+            if (j.code == 200) {
+                form.reset();
+            }
+        })
+    }
+    if (form.id == 'admin-product-form') {
+        e.preventDefault();
+
+        const formData = new FormData(form);
+        const groupId = formData.get("product-group-id")?.trim();
+        const name = formData.get("product-name")?.trim();
+        const description = formData.get("product-description")?.trim();
+        const slug = formData.get("product-slug")?.trim();
+        const price = parseFloat(formData.get("product-price"));
+        const stock = parseInt(formData.get("product-stock"));
+
+        if (!groupId) {
+            alert("Виберіть групу товару");
+            return;
+        }
+        if (!name) {
+            alert("Назва обов'язкова");
+            return;
+        }
+        if (name.length > 100) {
+            alert("Назва не може бути довше 100 символів");
+            return;
+        }
+        if (description && description.length > 500) {
+            alert("Опис не може бути довше 500 символів");
+            return;
+        }
+        if (slug && !/^[a-z0-9-]+$/.test(slug)) {
+            alert("Slug може містити лише латинські малі букви, цифри та дефіс (-)");
+            return;
+        }
+        if (isNaN(price) || price <= 0) {
+            alert("Ціна має бути більше 0");
+            return;
+        }
+        if (isNaN(stock) || stock < 0) {
+            alert("Кількість на складі не може бути від’ємною");
+            return;
+        }
+
+        fetch("/api/product", {
+            method: 'POST',
+            body: formData,
+        }).then(r => r.json()).then(j => {
+            alert(j.status);
+            if (j.code == 200) {
+                form.reset();
+            }
+        });
+    }
+
 });
