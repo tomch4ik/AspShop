@@ -1,6 +1,7 @@
 ﻿using AspShop.Data;
 using AspShop.Data.Entities;
 using AspShop.Models.Home;
+using AspShop.Models.Rest;
 using AspShop.Services.Storage;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -15,11 +16,27 @@ namespace AspShop.Controllers.Api
         private readonly DataContext _dataContext = dataContext;
         private readonly DataAccessor _dataAccessor = dataAccessor;
 
-        [HttpGet]
-        public IEnumerable<ProductGroup> AllGroups()
-        {
-            return _dataAccessor.GetProductGroups();
+        //[HttpGet]
+        //public IEnumerable<ProductGroup> AllGroups()
+        //{
+        //    return _dataAccessor.GetProductGroups();
 
+        //}
+
+        [HttpGet]
+        public RestResponse AllGroups()
+        {
+            return new()
+            {
+                Meta = new()
+                {
+                    Manipulations = [ "GET", "POST" ],
+                    Cache = 24 * 60 * 60,
+                    Service = "Shop API: product groups",
+                    DataType = "json/array"
+                },
+                Data = _dataAccessor.GetProductGroups()
+            };
         }
 
         [HttpPost]
