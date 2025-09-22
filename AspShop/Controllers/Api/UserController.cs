@@ -1,6 +1,9 @@
 ﻿using AspShop.Data;
+using AspShop.Data.Entities;
+using AspShop.Models.Rest;
 using AspShop.Services.Auth;
 using AspShop.Services.Kdf;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -11,11 +14,78 @@ namespace AspShop.Controllers.Api
 {
     [Route("api/user")]
     [ApiController]
-    public class UserController(DataContext dataContext, IKdfService kdfService, IAuthService authService) : ControllerBase
+    public class UserController(DataContext dataContext, DataAccessor dataAccessor, IKdfService kdfService, IAuthService authService) : ControllerBase
     {
         private readonly DataContext _dataContext = dataContext;
+        private readonly DataAccessor _dataAccessor = dataAccessor;
         private readonly IKdfService _kdfService = kdfService;
         private readonly IAuthService _authService = authService;
+
+        [HttpGet("jwt")]
+        public RestResponse AuthenticateJwt()
+        {
+            RestResponse response = new();
+            UserAccess userAccess;
+            try
+            {
+                var (login, password) = GetBasicCredentials();
+                userAccess = _dataAccessor.Authenticate(login, password)
+                    ?? throw new Exception("Credentials rejected");
+            }
+            catch (Exception ex)
+            {
+                response.Status = RestStatus.Status401;
+                response.Data = ex.Message;
+                return response;
+            }
+            //Трансформуємо UserAccess у JWT
+            var headerObject = new { alg = "HS256", typ = "JWT" };
+            String headerJson = JsonSerializer.Serialize(headerObject);
+            String header64 = Base64UrlTextEncoder.Encode(
+                System.Text.Encoding.UTF8.GetBytes(headerJson)
+            );
+
+            var payloadObject = new
+            {
+                //Стандартні поля
+                iss = "AspShop",   // Issuer	Identifies principal that issued the JWT.
+                sub = userAccess.UserId,   // Subject	Identifies the subject of the JWT.
+                aud = userAccess.RoleId,   // Audience	Identifies the recipients that the JWT is intended for. Each principal intended to process the JWT must identify itself with a value in the audience claim. If the principal processing the claim does not identify itself with a value in the aud claim when this claim is present, then the JWT must be rejected.
+                exp = DateTime.Now.AddMinutes(10),   // Expiration Time	Identifies the expiration time on and after which the JWT must not be accepted for processing. The value must be a NumericDate:[9] either an integer or decimal, representing seconds past 1970-01-01 00:00:00Z.
+                nbf = DateTime.Now,   // Not Before	Identifies the time on which the JWT will start to be accepted for processing. The value must be a NumericDate.
+                iat = DateTime.Now,   // Issued at	Identifies the time at which the JWT was issued. The value must be a NumericDate.
+                jti = Guid.NewGuid(),   // JWT ID	Case-sensitive unique identifier of the token even among different issuers.iss	Issuer	Identifies principal that issued the JWT.
+                //Не стандартні поля
+                name = userAccess.User.Name,
+                email = userAccess.User.Email,
+            };
+            String payloadJson = JsonSerializer.Serialize(payloadObject);
+            String payload64 = Base64UrlTextEncoder.Encode(
+                System.Text.Encoding.UTF8.GetBytes(payloadJson)
+            );
+            response.Data = header64;
+            response.Data =payload64;
+            return response;
+        }
+
+        private (String, String) GetBasicCredentials()
+        {
+            String? header = HttpContext.Request.Headers.Authorization;
+            if (header == null)      // Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ==
+            {
+                throw new Exception("Authorization Header Required");
+            }
+            String credentials =    // 'Basic ' - length = 6
+                header[6..];        // QWxhZGRpbjpvcGVuIHNlc2FtZQ==
+            String userPass =       // Aladdin:open sesame
+                System.Text.Encoding.UTF8.GetString(
+                    Convert.FromBase64String(credentials));
+
+            String[] parts = userPass.Split(':', 2);
+            String login = parts[0];
+            String password = parts[1];
+            return (login, password);
+        }
 
         [HttpGet]
         public object Authenticate()
