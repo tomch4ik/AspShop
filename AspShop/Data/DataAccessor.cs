@@ -11,12 +11,7 @@ namespace AspShop.Data
 
         public UserAccess? Authenticate(String login, String password)
         {
-            var userAccess = _dataContext
-                .UserAccesses
-                .AsNoTracking()
-                .Include(ua => ua.User)
-                .Include(ua => ua.Role)
-                .FirstOrDefault(ua => ua.Login == login);
+            var userAccess = GetUserAccessByLogin(login);
             if (userAccess == null)
             {
                 return null;
@@ -29,6 +24,16 @@ namespace AspShop.Data
             return userAccess;
         }
 
+        public UserAccess? GetUserAccessByLogin(string login)
+        {
+            return _dataContext
+                .UserAccesses
+                .AsNoTracking()
+                .Include(ua => ua.User)
+                .Include(ua => ua.Role)
+                .FirstOrDefault(ua => ua.Login == login);
+        }
+
         public IEnumerable<ProductGroup> GetProductGroups()
         {
             return _dataContext
@@ -38,3 +43,4 @@ namespace AspShop.Data
         }
     }
 }
+

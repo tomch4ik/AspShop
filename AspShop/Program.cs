@@ -58,6 +58,8 @@ app.MapStaticAssets();
 app.UseSession();
 app.UseSessionAuth();
 
+app.UseJwtAuth();
+
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}")

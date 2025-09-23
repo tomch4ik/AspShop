@@ -6,7 +6,7 @@ using AspShop.Services.Kdf;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using System.Text.Json;
 
 
@@ -14,12 +14,12 @@ namespace AspShop.Controllers.Api
 {
     [Route("api/user")]
     [ApiController]
-    public class UserController(DataContext dataContext, DataAccessor dataAccessor, IKdfService kdfService, IAuthService authService) : ControllerBase
+    public class UserController(DataAccessor dataAccessor, IConfiguration configuration, IKdfService kdfService, IAuthService authService) : ControllerBase
     {
-        private readonly DataContext _dataContext = dataContext;
         private readonly DataAccessor _dataAccessor = dataAccessor;
         private readonly IKdfService _kdfService = kdfService;
         private readonly IAuthService _authService = authService;
+        private readonly IConfiguration _configuration = configuration;
 
         [HttpGet("jwt")]
         public RestResponse AuthenticateJwt()
@@ -44,7 +44,7 @@ namespace AspShop.Controllers.Api
             String header64 = Base64UrlTextEncoder.Encode(
                 System.Text.Encoding.UTF8.GetBytes(headerJson)
             );
-
+            //response.Data = header64;
             var payloadObject = new
             {
                 //Стандартні поля
@@ -63,8 +63,18 @@ namespace AspShop.Controllers.Api
             String payload64 = Base64UrlTextEncoder.Encode(
                 System.Text.Encoding.UTF8.GetBytes(payloadJson)
             );
-            response.Data = header64;
-            response.Data =payload64;
+
+            String secret = _configuration.GetSection("Jwt").GetSection("Secret").Value
+                ?? throw new KeyNotFoundException("Not found configuration 'Jwt.Secret'");
+            String tokenBody = header64 + "." + payload64;
+
+            String signature = Base64UrlTextEncoder.Encode(
+                System.Security.Cryptography.HMACSHA256.HashData(
+                 System.Text.Encoding.UTF8.GetBytes(secret),
+                 System.Text.Encoding.UTF8.GetBytes(tokenBody)
+             ));
+
+            response.Data = tokenBody + '.' + signature;
             return response;
         }
 
@@ -111,7 +121,7 @@ namespace AspShop.Controllers.Api
             }
 
             String credentials =    // 'Basic ' - length = 6
-                header[prefix.Length..];        // QWxhZGRpbjpvcGVuIHNlc2FtZQ==
+                header[prefix.Length..];        // QWxhZGRpbjpvcGVуIHNlc2FtZQ==
             if (string.IsNullOrWhiteSpace(credentials))
             {
                 HttpContext.Response.StatusCode = StatusCodes.Status400BadRequest;
@@ -140,12 +150,7 @@ namespace AspShop.Controllers.Api
             String login = parts[0];
             String password = parts[1];
 
-            var userAccess = _dataContext
-                .UserAccesses
-                .AsNoTracking()
-                .Include(ua => ua.User)
-                .Include(ua => ua.Role)
-                .FirstOrDefault(ua => ua.Login == login);
+            var userAccess = _dataAccessor.Authenticate(login, password);
 
             if (userAccess == null)
             {
@@ -153,12 +158,6 @@ namespace AspShop.Controllers.Api
                 return new { Status = "Credentials rejected" };
             }
 
-            String dk = _kdfService.Dk(password, userAccess.Salt);
-            if (dk != userAccess.Dk)
-            {
-                HttpContext.Response.StatusCode = StatusCodes.Status401Unauthorized;
-                return new { Status = "Credentials rejected." };
-            }
             // зберігаємо у сесії факт успішної автентифікації
             //HttpContext.Session.SetString(
             //    "UserController::Authenticate",
@@ -182,6 +181,7 @@ namespace AspShop.Controllers.Api
         }
     }
 }
+
 
 /* Відмінності АРІ та MVC контролерів
  * MVC:
