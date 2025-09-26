@@ -1,9 +1,8 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
-using System.Text.Json.Serialization;
 
-namespace AspShop.Data.Entities
+namespace AspShop.Models.Data
 {
-    public record Product
+    public class ProductDto
     {
         public Guid Id { get; set; }
 
@@ -17,18 +16,8 @@ namespace AspShop.Data.Entities
 
         public String? ImageUrl { get; set; } = null!;
         public int Stock { get; set; }
-
-        [Column(TypeName = "decimal(12,2)")]
         public double Price { get; set; }
-
-        public DateTime? DeletedAt { get; set; }
-
-        [JsonIgnore]
-        public ProductGroup Group { get; set; } = null!;
-
-        [JsonIgnore]
-        public ICollection<Feedback> Feedbacks { get; set; } = [];
-        [NotMapped]
         public int FeedbacksCount { get; set; }
+
     }
 }

@@ -52,6 +52,7 @@ namespace AspShop.Data
             var group = _dataContext
             .ProductGroups
             .Include(g => g.Products.Where(p => p.DeletedAt == null))
+            .ThenInclude(p => p.Feedbacks)
             .AsNoTracking()
             .FirstOrDefault(g => g.Slug == slug && g.DeletedAt == null);
             return group == null ? null : group with
@@ -60,7 +61,8 @@ namespace AspShop.Data
                 .Select(p => p with
                 {
                 ImageUrl =
-                $"/Storage/Item/{p.ImageUrl ?? "no-image.jpg"}"
+                $"/Storage/Item/{p.ImageUrl ?? "no-image.jpg"}",
+                    FeedbacksCount = p.Feedbacks.Count()
                 })
                 .ToList()
             };

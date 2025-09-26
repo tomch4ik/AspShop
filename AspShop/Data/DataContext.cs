@@ -11,6 +11,8 @@ namespace AspShop.Data
         public DbSet<ProductGroup> ProductGroups { get; set; }
         public DbSet<Product> Products { get; set; }
         public DbSet<Feedback> Feedbacks { get; set; }
+        public DbSet<Cart> Carts { get; set; }
+        public DbSet<CartItem> CartItems { get; set; }
         public DataContext(DbContextOptions<DataContext> options) : base(options)
         {}
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -55,6 +57,11 @@ namespace AspShop.Data
                     Dk = "2744FC45FF2F7CACD2EB" 
                 });
             #endregion
+            modelBuilder.Entity<Product>()
+            .HasMany(p => p.Feedbacks)
+            .WithOne()
+            .HasForeignKey(f => f.ProductId);
+
             modelBuilder.Entity<UserAccess>()
                 .HasOne(ua => ua.User)
                 .WithMany(u => u.Accesses);
