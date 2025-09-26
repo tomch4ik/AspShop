@@ -10,6 +10,7 @@ namespace AspShop.Data
         public DbSet<UserAccess> UserAccesses { get; set; }
         public DbSet<ProductGroup> ProductGroups { get; set; }
         public DbSet<Product> Products { get; set; }
+        public DbSet<Feedback> Feedbacks { get; set; }
         public DataContext(DbContextOptions<DataContext> options) : base(options)
         {}
         protected override void OnModelCreating(ModelBuilder modelBuilder)

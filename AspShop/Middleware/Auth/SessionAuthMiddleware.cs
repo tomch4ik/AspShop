@@ -31,7 +31,8 @@ namespace AspShop.Middleware.Auth
                     context.User = new ClaimsPrincipal(
                         new ClaimsIdentity(
                             [
-                                new Claim(ClaimTypes.Sid, userAccess.UserId.ToString()),
+                                new Claim(ClaimTypes.Sid, userAccess.Id.ToString()),
+                                new Claim(ClaimTypes.PrimarySid, userAccess.UserId.ToString()),
                                 new Claim(ClaimTypes.Name, userAccess.User.Name),
                                 new Claim(ClaimTypes.Role, userAccess.RoleId),
                                 new Claim(ClaimTypes.Email, userAccess.User.Email)

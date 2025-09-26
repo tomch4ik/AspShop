@@ -1,6 +1,6 @@
 ﻿namespace AspShop.Data.Entities
 {
-    public class ProductGroup
+    public record ProductGroup
     {
         public Guid Id { get; set; }
 

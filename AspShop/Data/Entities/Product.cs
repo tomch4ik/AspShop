@@ -1,8 +1,9 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Serialization;
 
 namespace AspShop.Data.Entities
 {
-    public class Product
+    public record Product
     {
         public Guid Id { get; set; }
 
@@ -22,6 +23,7 @@ namespace AspShop.Data.Entities
 
         public DateTime? DeletedAt { get; set; }
 
+        [JsonIgnore]
         public ProductGroup Group { get; set; } = null!;
     }
 }
