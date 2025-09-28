@@ -57,10 +57,22 @@ namespace AspShop.Data
                     Dk = "2744FC45FF2F7CACD2EB" 
                 });
             #endregion
+            modelBuilder.Entity<Cart>()
+                .HasOne(c => c.User)
+    .           WithMany(u => u.Carts);
+
+            modelBuilder.Entity<CartItem>()
+                .HasOne(ci => ci.Cart)
+                .WithMany(c => c.CartItems);
+
+            modelBuilder.Entity<CartItem>()
+                .HasOne(ci => ci.Product)
+                .WithMany();
+
             modelBuilder.Entity<Product>()
-            .HasMany(p => p.Feedbacks)
-            .WithOne()
-            .HasForeignKey(f => f.ProductId);
+                .HasMany(p => p.Feedbacks)
+                .WithOne()
+                .HasForeignKey(f => f.ProductId);
 
             modelBuilder.Entity<UserAccess>()
                 .HasOne(ua => ua.User)

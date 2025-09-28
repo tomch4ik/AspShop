@@ -17,6 +17,6 @@ namespace AspShop.Data.Entities
         public Guid? DiscountId { get; set; }
         [JsonIgnore]
         public User User { get; set; } = null!;
-        public ICollection<CartItem> Items { get; set; } = [];
+        public ICollection<CartItem> CartItems { get; set; } = [];
     }
 }

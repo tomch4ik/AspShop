@@ -12,6 +12,6 @@ namespace AspShop.Data.Entities
 
         [JsonIgnore]
         public ICollection<UserAccess> Accesses { get; set; } = [];
-        public ICollection<CartItem> Carts { get; set; } = [];
+        public ICollection<Cart> Carts { get; set; } = [];
     }
 }

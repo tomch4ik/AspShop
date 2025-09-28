@@ -9,6 +9,89 @@ namespace AspShop.Data
         private readonly DataContext _dataContext = dataContext;
         private readonly IKdfService _kdfService = kdfService;
 
+        public void AddToCart(String userId, String productId)
+        {
+            Guid userGuid = Guid.Parse(userId);
+            Guid productGuid = Guid.Parse(userId);
+            // Перевіряємо чи достатньо товару у наявності
+            // Перевіряємо чи користувач має відкритий кошик
+            // Якщо не має, то відкриваємо новий
+            // Перевіряємо чи є у кошику даний товар
+            // якщо ні, то створюємо нову позицію
+            // якщо є, то збільшуємо кількість у наявній позиції
+            Cart? cart = GetActiveCart(userId);
+            if (cart == null)
+            {
+                cart = new Cart()
+                {
+                    Id = Guid.NewGuid(),
+                    UserId = userGuid,
+                    CreatedAt = DateTime.Now,
+                };
+                _dataContext.Carts.Add(cart);
+            }
+            CartItem? cartItem = cart.CartItems
+                .FirstOrDefault(ci => ci.ProductId == productGuid);
+            if (cartItem == null)
+            {
+                cartItem = new CartItem()
+                {
+                    Id = Guid.NewGuid(),
+                    CartId = cart.Id,
+                    ProductId = productGuid,
+                    Quantity = 1,
+                    Product = _dataContext.Products.Find(productGuid)!,
+                };
+                _dataContext.CartItems.Add(cartItem);
+                cart.CartItems.Add(cartItem);
+            }
+            else
+            {
+                cartItem.Quantity += 1;
+            }
+            // Перераховуємо вартість кошика
+            CalcPrice(cart);
+            _dataContext.SaveChanges();
+        }
+        private void CalcPrice(Cart cart)
+        {
+            double total = 0.0;
+            foreach (CartItem cartItem in cart.CartItems)
+            {
+                // if (cartItem.DiscountID != null) ...
+                cartItem.Price = cartItem.Product.Price * cartItem.Quantity;
+                total += cartItem.Price;
+            }
+            // if (cart.DiscountID != null) ...
+            cart.Price = total;
+        }
+
+        public Cart? GetActiveCart(String userId)
+        {
+            Guid userGuid = Guid.Parse(userId);
+            return _dataContext.Carts
+                .Include(c => c.CartItems)
+                .ThenInclude(ci => ci.Product)
+                .FirstOrDefault(c =>
+                    c.UserId == userGuid &&
+                    c.PaidAt == null &&
+                    c.DeletedAt == null);
+        }
+
+        public void AddFeedback(Product product, Guid? userId, int? rate, string? comment)
+        {
+            _dataContext.Feedbacks.Add(new Feedback()
+            {
+                Id = Guid.NewGuid(),
+                ProductId = product.Id,
+                UserId = userId,
+                Rate = rate,
+                Comment = comment,
+                CreatedAt = DateTime.Now
+            });
+            _dataContext.SaveChanges();
+        }
+
         public UserAccess? Authenticate(String login, String password)
         {
             var userAccess = GetUserAccessByLogin(login);

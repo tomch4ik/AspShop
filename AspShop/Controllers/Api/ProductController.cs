@@ -31,38 +31,31 @@ namespace AspShop.Models.Api
                     Service = "Shop API: product feedback",
                     DataType = "null",
                     Opt = {
-             { "id", id },
-             { "rate", rate ?? -1 },
-             { "comment", comment ?? "" },
+                { "id", id },
+                { "rate", rate ?? -1 },
+                { "comment", comment ?? "" },
             },
                 },
                 Data = null
             };
+
             Guid? userId = null;
-            //Визначаємо чи є авторизований користувач
             if (HttpContext.User.Identity?.IsAuthenticated ?? false)
             {
                 userId = Guid.Parse(HttpContext.User.Claims
                     .First(c => c.Type == ClaimTypes.PrimarySid)
                     .Value);
             }
-            //Перевіряємо чи існує товар
+
             var product = _dataAccessor.GetProductBySlug(id);
             if (product == null)
             {
                 restResponse.Status = RestStatus.Status404;
                 return restResponse;
             }
-            _dataContext.Feedbacks.Add(new()
-            {
-                Id = Guid.NewGuid(),
-                ProductId = product.Id,
-                UserId = userId,
-                Rate = rate,
-                Comment = comment,
-                CreatedAt = DateTime.Now
-            });
-            _dataContext.SaveChanges();
+
+            _dataAccessor.AddFeedback(product, userId, rate, comment);
+
             return restResponse;
         }
 
