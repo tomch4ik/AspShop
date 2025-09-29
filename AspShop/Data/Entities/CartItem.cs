@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Serialization;
 
 namespace AspShop.Data.Entities
 {
@@ -13,6 +14,7 @@ namespace AspShop.Data.Entities
         public int Quantity { get; set; } = 1;
 
         public Guid? DiscountId { get; set; }
+        [JsonIgnore]
         public Cart Cart { get; set; } = null!;
         public Product Product { get; set; } = null!;
     }

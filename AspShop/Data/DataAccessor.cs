@@ -12,7 +12,7 @@ namespace AspShop.Data
         public void AddToCart(String userId, String productId)
         {
             Guid userGuid = Guid.Parse(userId);
-            Guid productGuid = Guid.Parse(userId);
+            Guid productGuid = Guid.Parse(productId);
             // Перевіряємо чи достатньо товару у наявності
             // Перевіряємо чи користувач має відкритий кошик
             // Якщо не має, то відкриваємо новий
@@ -34,16 +34,17 @@ namespace AspShop.Data
                 .FirstOrDefault(ci => ci.ProductId == productGuid);
             if (cartItem == null)
             {
+                var product = _dataContext.Products.Find(productGuid)!;
                 cartItem = new CartItem()
                 {
                     Id = Guid.NewGuid(),
                     CartId = cart.Id,
                     ProductId = productGuid,
                     Quantity = 1,
-                    Product = _dataContext.Products.Find(productGuid)!,
+                    Product = product,
                 };
                 _dataContext.CartItems.Add(cartItem);
-                cart.CartItems.Add(cartItem);
+                //cart.CartItems.Add(cartItem);
             }
             else
             {
