@@ -9,6 +9,52 @@ namespace AspShop.Data
         private readonly DataContext _dataContext = dataContext;
         private readonly IKdfService _kdfService = kdfService;
 
+        public bool UpdateCartItem(String userId, String ciId, int cnt)
+        {
+            Guid userGuid = Guid.Parse(userId);
+            Guid ciGuid = Guid.Parse(ciId);
+            Cart? cart = GetActiveCart(userId);
+            if (cart == null)
+            {
+                return false;
+            }
+            CartItem? ci = cart.CartItems.FirstOrDefault(ci => ci.Id == ciGuid);
+            if (ci == null)
+            {
+                return false;
+            }
+            int newQuantity = ci.Quantity + cnt;
+            if (newQuantity <= 0 || newQuantity > ci.Product.Stock)
+            {
+                return false;
+            }
+            ci.Quantity = newQuantity;
+            CalcPrice(cart);
+            _dataContext.SaveChanges();
+            return true;
+        }
+
+
+        public bool DeleteCartItem(String userId, String ciId)
+        {
+            Guid userGuid = Guid.Parse(userId);
+            Guid ciGuid = Guid.Parse(ciId);
+            Cart? cart = GetActiveCart(userId);
+            if (cart == null)
+            {
+                return false;
+            }
+            CartItem? ci = cart.CartItems.FirstOrDefault(ci => ci.Id == ciGuid);
+            if (ci == null)
+            {
+                return false;
+            }     
+            _dataContext.CartItems.Remove(ci);
+            CalcPrice(cart);
+            _dataContext.SaveChanges();
+            return true;
+        }
+
         public void AddToCart(String userId, String productId)
         {
             Guid userGuid = Guid.Parse(userId);

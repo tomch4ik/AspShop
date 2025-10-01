@@ -33,7 +33,7 @@ builder.Services.AddSingleton<IStorageService, DiskStorageService>();
 builder.Services.AddCors(options => { 
     options.AddDefaultPolicy(policy => 
     { 
-        policy.AllowAnyOrigin().AllowAnyHeader();
+        policy.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod();
 
     }); 
 });

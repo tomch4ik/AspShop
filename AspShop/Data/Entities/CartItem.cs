@@ -3,7 +3,7 @@ using System.Text.Json.Serialization;
 
 namespace AspShop.Data.Entities
 {
-    public class CartItem
+    public record CartItem
     {
         public Guid Id { get; set; }
         public Guid CartId { get; set; }
